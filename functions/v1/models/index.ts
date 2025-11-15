@@ -10,6 +10,7 @@ export async function onRequest({ request, env }: any) {
       id: model,
       object: 'model',
       name: model.split('/').pop(),
+      owned_by: 'edgeone',
     });
     modelsData.push({
       id: model + ':online',
