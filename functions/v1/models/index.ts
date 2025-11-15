@@ -17,11 +17,16 @@ export async function onRequest({ request, env }: any) {
       name: model.split('/').pop() + ':online',
     });
   }
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
+  return new Response(
+    JSON.stringify({
       data: modelsData,
       object: 'list',
     }),
-  };
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    }
+  );
 }
