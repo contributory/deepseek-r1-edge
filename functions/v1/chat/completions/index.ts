@@ -24,25 +24,7 @@ const messageSchema = z
     network: z.boolean().optional(),
     model: z.string().optional(),
     stream: z.boolean().optional(),
-    tools: z
-      .array(
-        z.object({
-          name: z.string(),
-          description: z.string(),
-          parameters: z.object({
-            type: z.literal('object'),
-            properties: z.record(
-              z.object({
-                type: z.string(),
-                description: z.string().optional(),
-                enum: z.array(z.string()).optional(),
-              })
-            ),
-            required: z.array(z.string()).optional(),
-          }),
-        })
-      )
-      .optional(),
+    tools: z.array(z.any()).optional(),
     tool_choice: z.string().optional(),
   })
   .passthrough();
