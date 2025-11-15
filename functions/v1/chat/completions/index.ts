@@ -23,6 +23,27 @@ const messageSchema = z
     ),
     network: z.boolean().optional(),
     model: z.string().optional(),
+    stream: z.boolean().optional(),
+    tools: z
+      .array(
+        z.object({
+          name: z.string(),
+          description: z.string(),
+          parameters: z.object({
+            type: z.literal('object'),
+            properties: z.record(
+              z.object({
+                type: z.string(),
+                description: z.string().optional(),
+                enum: z.array(z.string()).optional(),
+              })
+            ),
+            required: z.array(z.string()).optional(),
+          }),
+        })
+      )
+      .optional(),
+    tool_choice: z.string().optional(),
   })
   .passthrough();
 
@@ -188,7 +209,13 @@ export async function onRequest({ request, env }: any) {
       return createResponse({ error: parseResult.error.message });
     }
 
-    const { messages, network, model } = parseResult.data;
+    let { messages, network, model, stream, tools, tool_choice } =
+      parseResult.data;
+
+    if (model && model.endsWith(':online')) {
+      model = model.replace(':online', '');
+      network = true;
+    }
 
     const currentInput = messages[messages.length - 1]?.content;
 
@@ -237,7 +264,9 @@ export async function onRequest({ request, env }: any) {
       const aiStream = await AI.chatCompletions({
         model: selectedModel,
         messages: processedMessages,
-        stream: true,
+        stream: stream,
+        tools: tools,
+        tool_choice: tool_choice,
       });
 
       return new Response(aiStream, {
