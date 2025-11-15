@@ -1,8 +1,8 @@
 export async function onRequest({ request, env }: any) {
   const allowedModels = [
-    '@tx/deepseek-ai/deepseek-r1-distill-qwen-32b',
-    '@tx/deepseek-ai/deepseek-r1-0528',
-    '@tx/deepseek-ai/deepseek-v3-0324',
+    'deepseek-r1-distill-qwen-32b',
+    'deepseek-r1-0528',
+    'deepseek-v3-0324',
   ];
   const modelsData = [];
   for (const model of allowedModels) {
@@ -10,12 +10,6 @@ export async function onRequest({ request, env }: any) {
       id: model,
       object: 'model',
       name: model.split('/').pop(),
-      owned_by: 'edgeone',
-    });
-    modelsData.push({
-      id: model + ':online',
-      object: 'model',
-      name: model.split('/').pop() + ':online',
       owned_by: 'edgeone',
     });
   }

@@ -194,8 +194,15 @@ export async function onRequest({ request, env }: any) {
     let { messages, network, model, stream, tools, tool_choice } =
       parseResult.data;
 
-    if (model && model.endsWith(':online')) {
-      model = model.replace(':online', '');
+    if (model) {
+      if (model.endsWith(':online')) {
+        model = model.replace(':online', '');
+        network = true;
+      }
+      model = '@tx/deepseek-ai/' + model;
+    }
+
+    if (tools || tool_choice) {
       network = true;
     }
 
