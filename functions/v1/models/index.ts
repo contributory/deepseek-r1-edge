@@ -15,6 +15,7 @@ export async function onRequest({ request, env }: any) {
       id: model + ':online',
       object: 'model',
       name: model.split('/').pop() + ':online',
+      owned_by: 'edgeone',
     });
   }
   return new Response(
