@@ -12,6 +12,30 @@ interface ProcessedContent {
   searchResults?: SearchResult[];
 }
 
+// OpenAI-compatible tool schemas
+const functionParametersSchema = z.record(z.any()).optional();
+
+const functionSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  parameters: functionParametersSchema,
+});
+
+const toolSchema = z.object({
+  type: z.literal('function'),
+  function: functionSchema,
+});
+
+const toolChoiceSchema = z.union([
+  z.enum(['auto', 'required', 'none']),
+  z.object({
+    type: z.literal('function'),
+    function: z.object({
+      name: z.string(),
+    }),
+  }),
+]);
+
 // Schema definitions
 const messageSchema = z
   .object({
@@ -23,6 +47,8 @@ const messageSchema = z
     ),
     network: z.boolean().optional(),
     model: z.string().optional(),
+    tools: z.array(toolSchema).optional(),
+    tool_choice: toolChoiceSchema.optional(),
   })
   .passthrough();
 
@@ -188,7 +214,7 @@ export async function onRequest({ request, env }: any) {
       return createResponse({ error: parseResult.error.message });
     }
 
-    const { messages, network, model } = parseResult.data;
+    const { messages, network, model, tools, tool_choice } = parseResult.data;
 
     const currentInput = messages[messages.length - 1]?.content;
 
@@ -233,12 +259,25 @@ export async function onRequest({ request, env }: any) {
         });
       }
 
-      // @ts-ignore-next-line
-      const aiStream = await AI.chatCompletions({
+      // Build AI API request with optional tools
+      const aiRequest: any = {
         model: selectedModel,
         messages: processedMessages,
         stream: true,
-      });
+      };
+
+      // Add tools if provided
+      if (tools && tools.length > 0) {
+        aiRequest.tools = tools;
+      }
+
+      // Add tool_choice if provided
+      if (tool_choice) {
+        aiRequest.tool_choice = tool_choice;
+      }
+
+      // @ts-ignore-next-line
+      const aiStream = await AI.chatCompletions(aiRequest);
 
       return new Response(aiStream, {
         headers: {
